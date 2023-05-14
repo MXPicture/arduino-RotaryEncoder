@@ -63,6 +63,13 @@ private:
 
   volatile int8_t _oldState;
 
+  int _sig1;
+  int _sig2;
+  int _thisState;
+  unsigned long _timeBetweenLastPositions;
+  unsigned long _timeToLastPosition;
+  unsigned long _t;
+
   volatile long _position;        // Internal position (4 times _positionExt)
   volatile long _positionExt;     // External position
   volatile long _positionExtPrev; // External position (used only for direction checking)

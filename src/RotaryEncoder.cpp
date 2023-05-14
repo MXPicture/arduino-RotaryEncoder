@@ -50,9 +50,9 @@ RotaryEncoder::RotaryEncoder(int pin1, int pin2, LatchMode mode)
   pinMode(pin2, INPUT_PULLUP);
 
   // when not started in motion, the current state of the encoder should be 3
-  int sig1 = digitalRead(_pin1);
-  int sig2 = digitalRead(_pin2);
-  _oldState = sig1 | (sig2 << 1);
+  this->_sig1 = digitalRead(_pin1);
+  this->_sig2 = digitalRead(_pin2);
+  _oldState = this->_sig1 | (this->_sig2 << 1);
 
   // start with position 0;
   _position = 0;
@@ -110,17 +110,17 @@ void RotaryEncoder::setPosition(long newPosition)
 
 void RotaryEncoder::tick(void)
 {
-  int sig1 = digitalRead(_pin1);
-  int sig2 = digitalRead(_pin2);
-  int8_t thisState = sig1 | (sig2 << 1);
-
-  if (_oldState != thisState) {
-    _position += KNOBDIR[thisState | (_oldState << 2)];
-    _oldState = thisState;
+  this->_sig1 = digitalRead(_pin1);
+  this->_sig2 = digitalRead(_pin2);
+  this->_thisState = this->_sig1 | (this->_sig2 << 1);
+  
+  if (_oldState != this->_thisState) {
+    _position += KNOBDIR[this->_thisState | (_oldState << 2)];
+    _oldState = this->_thisState;
 
     switch (_mode) {
     case LatchMode::FOUR3:
-      if (thisState == LATCH3) {
+      if (this->_thisState == LATCH3) {
         // The hardware has 4 steps with a latch on the input state 3
         _positionExt = _position >> 2;
         _positionExtTimePrev = _positionExtTime;
@@ -129,7 +129,7 @@ void RotaryEncoder::tick(void)
       break;
 
     case LatchMode::FOUR0:
-      if (thisState == LATCH0) {
+      if (this->_thisState == LATCH0) {
         // The hardware has 4 steps with a latch on the input state 0
         _positionExt = _position >> 2;
         _positionExtTimePrev = _positionExtTime;
@@ -138,7 +138,7 @@ void RotaryEncoder::tick(void)
       break;
 
     case LatchMode::TWO03:
-      if ((thisState == LATCH0) || (thisState == LATCH3)) {
+      if ((this->_thisState == LATCH0) || (this->_thisState == LATCH3)) {
         // The hardware has 2 steps with a latch on the input state 0 and 3
         _positionExt = _position >> 1;
         _positionExtTimePrev = _positionExtTime;
@@ -158,10 +158,10 @@ unsigned long RotaryEncoder::getMillisBetweenRotations() const
 unsigned long RotaryEncoder::getRPM()
 {
   // calculate max of difference in time between last position changes or last change and now.
-  unsigned long timeBetweenLastPositions = _positionExtTime - _positionExtTimePrev;
-  unsigned long timeToLastPosition = millis() - _positionExtTime;
-  unsigned long t = max(timeBetweenLastPositions, timeToLastPosition);
-  return 60000.0 / ((float)(t * 20));
+  this->_timeBetweenLastPositions = _positionExtTime - _positionExtTimePrev;
+  this->_timeToLastPosition = millis() - _positionExtTime;
+  this->_t = max(this->_timeBetweenLastPositions, this->_timeToLastPosition);
+  return 60000.0 / ((float)(this->_t * 20));
 }
 
 
